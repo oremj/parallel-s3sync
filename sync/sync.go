@@ -38,7 +38,7 @@ func (s S3KeyMap) Exists(key string, size int64) bool {
 func (s *Sync) worker(wg *sync.WaitGroup, fileChan chan *syncFile) {
 	s3Svc := s3.New(s.AWSConfig)
 	for f := range fileChan {
-		err := s.PutFile(s3Svc, f.LocalPath, f.Key, f.Info.Size())
+		err := s.PutFile(s3Svc, f.LocalPath, f.Key)
 		if err != nil {
 			log.Print(err)
 		}
@@ -79,7 +79,7 @@ func (s *Sync) KeyIndex(prefix string) (S3KeyMap, error) {
 	return keymap, nil
 }
 
-func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string, length int64) error {
+func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string) error {
 	fmt.Println("Putting:", localPath, key)
 	file, err := os.Open(localPath)
 
@@ -90,10 +90,9 @@ func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string, length int64) error 
 	defer file.Close()
 
 	params := &s3.PutObjectInput{
-		Bucket:        aws.String(s.Bucket),
-		Key:           aws.String(key),
-		Body:          file,
-		ContentLength: aws.Long(length),
+		Bucket: aws.String(s.Bucket),
+		Key:    aws.String(key),
+		Body:   file,
 	}
 
 	_, err = s3Svc.PutObject(params)
@@ -121,7 +120,7 @@ func (s *Sync) Sync(localPath, remotePath string, workers int) error {
 	}
 
 	err = filepath.Walk(localPath, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
+		if !info.Mode().IsRegular() {
 			return err
 		}
 		relPath, err := filepath.Rel(localPath, path)
