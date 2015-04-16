@@ -2,17 +2,27 @@ package sync
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/awslabs/aws-sdk-go/aws"
 	"github.com/awslabs/aws-sdk-go/service/s3"
 )
 
+type syncFile struct {
+	Key       string
+	LocalPath string
+}
+
 type Sync struct {
-	AWSConfig *aws.Config
-	Bucket    string
+	AWSConfig   *aws.Config
+	Bucket      string
+	filesToSync []*syncFile
+	position    int
+	lk          sync.Mutex
 }
 
 type S3KeyMap map[string]*s3.Object
@@ -24,6 +34,38 @@ func (s S3KeyMap) Exists(key string, size int64) bool {
 	}
 
 	return *v.Size == size
+}
+
+func (s *Sync) nextSyncFile() (*syncFile, bool) {
+	s.lk.Lock()
+	defer s.lk.Unlock()
+
+	if s.position >= len(s.filesToSync) {
+		return nil, false
+	}
+
+	f := s.filesToSync[s.position]
+	s.position++
+
+	return f, true
+
+}
+
+func (s *Sync) worker(wg *sync.WaitGroup) {
+	s3Svc := s3.New(s.AWSConfig)
+	for {
+		f, more := s.nextSyncFile()
+		if !more {
+			wg.Done()
+			return
+		}
+
+		err := s.PutFile(s3Svc, f.LocalPath, f.Key)
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
 }
 
 func (s *Sync) KeyIndex(prefix string) (S3KeyMap, error) {
@@ -59,9 +101,8 @@ func (s *Sync) KeyIndex(prefix string) (S3KeyMap, error) {
 	return keymap, nil
 }
 
-func (s *Sync) PutFile(localPath, key string) error {
-	s3Svc := s3.New(s.AWSConfig)
-
+func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string) error {
+	fmt.Println("Putting:", localPath, key)
 	file, err := os.Open(localPath)
 
 	if err != nil {
@@ -81,7 +122,7 @@ func (s *Sync) PutFile(localPath, key string) error {
 	return nil
 }
 
-func (s *Sync) Sync(localPath, remotePath string) error {
+func (s *Sync) Sync(localPath, remotePath string, workers int) error {
 	remotePath = strings.TrimPrefix(remotePath, "/")
 	if remotePath != "" && !strings.HasSuffix(remotePath, "/") {
 		remotePath += "/"
@@ -103,13 +144,21 @@ func (s *Sync) Sync(localPath, remotePath string) error {
 			return nil
 		}
 
-		err = s.PutFile(path, key)
+		s.filesToSync = append(s.filesToSync, &syncFile{Key: key, LocalPath: path})
 		return err
 	})
 
 	if err != nil {
 		return err
 	}
+
+	wg := new(sync.WaitGroup)
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go s.worker(wg)
+	}
+
+	wg.Wait()
 
 	return nil
 }
