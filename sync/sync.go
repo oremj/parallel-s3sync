@@ -15,6 +15,7 @@ import (
 type syncFile struct {
 	Key       string
 	LocalPath string
+	Info      os.FileInfo
 }
 
 type Sync struct {
@@ -37,7 +38,7 @@ func (s S3KeyMap) Exists(key string, size int64) bool {
 func (s *Sync) worker(wg *sync.WaitGroup, fileChan chan *syncFile) {
 	s3Svc := s3.New(s.AWSConfig)
 	for f := range fileChan {
-		err := s.PutFile(s3Svc, f.LocalPath, f.Key)
+		err := s.PutFile(s3Svc, f.LocalPath, f.Key, f.Info.Size())
 		if err != nil {
 			log.Print(err)
 		}
@@ -78,7 +79,7 @@ func (s *Sync) KeyIndex(prefix string) (S3KeyMap, error) {
 	return keymap, nil
 }
 
-func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string) error {
+func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string, length int64) error {
 	fmt.Println("Putting:", localPath, key)
 	file, err := os.Open(localPath)
 
@@ -86,10 +87,13 @@ func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string) error {
 		return err
 	}
 
+	defer file.Close()
+
 	params := &s3.PutObjectInput{
-		Bucket: aws.String(s.Bucket),
-		Key:    aws.String(key),
-		Body:   file,
+		Bucket:        aws.String(s.Bucket),
+		Key:           aws.String(key),
+		Body:          file,
+		ContentLength: aws.Long(length),
 	}
 
 	_, err = s3Svc.PutObject(params)
@@ -128,7 +132,7 @@ func (s *Sync) Sync(localPath, remotePath string, workers int) error {
 			return nil
 		}
 
-		fileChan <- &syncFile{Key: key, LocalPath: path}
+		fileChan <- &syncFile{Key: key, LocalPath: path, Info: info}
 		return err
 	})
 
