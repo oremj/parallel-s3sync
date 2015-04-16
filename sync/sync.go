@@ -3,6 +3,7 @@ package sync
 import (
 	"fmt"
 	"log"
+	"mime"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,10 +90,16 @@ func (s *Sync) PutFile(s3Svc *s3.S3, localPath, key string) error {
 
 	defer file.Close()
 
+	contentType := "binary/octet-stream"
+	if tmp := mime.TypeByExtension(filepath.Ext(key)); tmp != "" {
+		contentType = tmp
+	}
+
 	params := &s3.PutObjectInput{
-		Bucket: aws.String(s.Bucket),
-		Key:    aws.String(key),
-		Body:   file,
+		Bucket:      aws.String(s.Bucket),
+		ContentType: aws.String(contentType),
+		Key:         aws.String(key),
+		Body:        file,
 	}
 
 	_, err = s3Svc.PutObject(params)
