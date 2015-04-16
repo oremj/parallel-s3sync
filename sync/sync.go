@@ -18,11 +18,9 @@ type syncFile struct {
 }
 
 type Sync struct {
-	AWSConfig   *aws.Config
-	Bucket      string
-	filesToSync []*syncFile
-	position    int
-	lk          sync.Mutex
+	AWSConfig *aws.Config
+	Bucket    string
+	lk        sync.Mutex
 }
 
 type S3KeyMap map[string]*s3.Object
@@ -36,36 +34,15 @@ func (s S3KeyMap) Exists(key string, size int64) bool {
 	return *v.Size == size
 }
 
-func (s *Sync) nextSyncFile() (*syncFile, bool) {
-	s.lk.Lock()
-	defer s.lk.Unlock()
-
-	if s.position >= len(s.filesToSync) {
-		return nil, false
-	}
-
-	f := s.filesToSync[s.position]
-	s.position++
-
-	return f, true
-
-}
-
-func (s *Sync) worker(wg *sync.WaitGroup) {
+func (s *Sync) worker(wg *sync.WaitGroup, fileChan chan *syncFile) {
 	s3Svc := s3.New(s.AWSConfig)
-	for {
-		f, more := s.nextSyncFile()
-		if !more {
-			wg.Done()
-			return
-		}
-
+	for f := range fileChan {
 		err := s.PutFile(s3Svc, f.LocalPath, f.Key)
 		if err != nil {
 			log.Print(err)
 		}
 	}
-
+	wg.Done()
 }
 
 func (s *Sync) KeyIndex(prefix string) (S3KeyMap, error) {
@@ -132,6 +109,13 @@ func (s *Sync) Sync(localPath, remotePath string, workers int) error {
 		return err
 	}
 
+	fileChan := make(chan *syncFile, 1000)
+	wg := new(sync.WaitGroup)
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go s.worker(wg, fileChan)
+	}
+
 	err = filepath.Walk(localPath, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return err
@@ -144,19 +128,14 @@ func (s *Sync) Sync(localPath, remotePath string, workers int) error {
 			return nil
 		}
 
-		s.filesToSync = append(s.filesToSync, &syncFile{Key: key, LocalPath: path})
+		fileChan <- &syncFile{Key: key, LocalPath: path}
 		return err
 	})
 
 	if err != nil {
-		return err
+		log.Print(err)
 	}
-
-	wg := new(sync.WaitGroup)
-	wg.Add(workers)
-	for i := 0; i < workers; i++ {
-		go s.worker(wg)
-	}
+	close(fileChan)
 
 	wg.Wait()
 
