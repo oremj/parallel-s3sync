@@ -1,4 +1,4 @@
-package sync
+package s3sync
 
 import "mime"
 

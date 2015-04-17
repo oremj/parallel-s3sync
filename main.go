@@ -8,14 +8,14 @@ import (
 
 	"github.com/awslabs/aws-sdk-go/aws"
 	"github.com/codegangsta/cli"
-	"github.com/oremj/parallel-s3sync/sync"
+	"github.com/oremj/parallel-s3sync/s3sync"
 )
 
 func main() {
 
 	app := cli.NewApp()
 	app.Name = "parallel-s3sync"
-	app.Usage = "<local_path> <s3_path>"
+	app.Usage = "<source> <target>"
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
 			Name:  "workers",
@@ -23,11 +23,13 @@ func main() {
 			Usage: "Set amount of parallel uploads",
 		},
 	}
+
 	app.Action = func(c *cli.Context) {
 		if len(c.Args()) < 2 {
-			fmt.Println("<local_path> and <s3_path> required")
+			fmt.Println("<source> and <target> required")
 			os.Exit(1)
 		}
+		source, target := c.Args()[0], c.Args()[1]
 		workers := c.Int("workers")
 
 		s3Url, err := url.Parse(c.Args()[1])
@@ -35,16 +37,10 @@ func main() {
 			log.Fatal("Not a valid s3_path. Example: s3://bucket/path")
 		}
 
+		err = s3sync.Sync(&aws.Config{}, source, target, workers)
 		if err != nil {
 			log.Fatal(err)
 		}
-		localPath := c.Args()[0]
-
-		syncer := &sync.Sync{
-			AWSConfig: &aws.Config{},
-			Bucket:    s3Url.Host,
-		}
-		syncer.Sync(localPath, s3Url.Path, workers)
 	}
 
 	app.Run(os.Args)
