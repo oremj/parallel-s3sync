@@ -28,6 +28,11 @@ func main() {
 			Name:  "copy-symlinks",
 			Usage: "copy, but do not follow symlinks",
 		},
+		cli.IntFlag{
+			Name:  "loglevel",
+			Value: 0,
+			Usage: "Sets aws-sdk-go log level",
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
@@ -44,7 +49,10 @@ func main() {
 			log.Fatal("Not a valid s3_path. Example: s3://bucket/path")
 		}
 
-		sync := s3sync.New(&aws.Config{})
+		sync := s3sync.New(&aws.Config{
+			MaxRetries: 5,
+			LogLevel:   uint(c.Int("loglevel")),
+		})
 		sync.CopySymlinks = copySymlinks
 		err = sync.Sync(source, target, workers)
 		if err != nil {
