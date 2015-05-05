@@ -22,6 +22,10 @@ func main() {
 			Value: 16,
 			Usage: "Set amount of parallel uploads",
 		},
+		cli.BoolFlag{
+			Name:  "copy-symlinks",
+			Usage: "copy, but do not follow symlinks",
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
@@ -31,13 +35,16 @@ func main() {
 		}
 		source, target := c.Args()[0], c.Args()[1]
 		workers := c.Int("workers")
+		copySymlinks := c.Bool("copy-symlinks")
 
 		s3Url, err := url.Parse(c.Args()[1])
 		if s3Url.Scheme != "s3" || s3Url.Host == "" || s3Url.Path == "" {
 			log.Fatal("Not a valid s3_path. Example: s3://bucket/path")
 		}
 
-		err = s3sync.Sync(&aws.Config{}, source, target, workers)
+		sync := s3sync.New(&aws.Config{})
+		sync.CopySymlinks = copySymlinks
+		err = sync.Sync(source, target, workers)
 		if err != nil {
 			log.Fatal(err)
 		}

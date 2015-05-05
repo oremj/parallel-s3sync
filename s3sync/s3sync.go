@@ -1,6 +1,7 @@
 package s3sync
 
 import (
+	"bytes"
 	"errors"
 	"log"
 	"mime"
@@ -9,16 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/awslabs/aws-sdk-go/aws"
 	"github.com/awslabs/aws-sdk-go/service/s3"
 )
-
-type syncFile struct {
-	Key       string
-	LocalPath string
-	Info      os.FileInfo
-}
 
 func isLocalPath(path string) bool {
 	_, err := os.Stat(path)
@@ -41,10 +37,13 @@ func parseS3Path(path string) (*url.URL, error) {
 	return u, nil
 }
 
-func Sync(awsConfig *aws.Config, source, target string, workers int) error {
-	s := &s3sync{
+func New(awsConfig *aws.Config) *S3Sync {
+	return &S3Sync{
 		AWSConfig: awsConfig,
 	}
+}
+
+func (s *S3Sync) Sync(source, target string, workers int) error {
 	if isLocalPath(source) && isS3Path(target) {
 		s3url, err := parseS3Path(target)
 		if err != nil {
@@ -57,8 +56,9 @@ func Sync(awsConfig *aws.Config, source, target string, workers int) error {
 	return errors.New("Operation not supported")
 }
 
-type s3sync struct {
-	AWSConfig *aws.Config
+type S3Sync struct {
+	AWSConfig    *aws.Config
+	CopySymlinks bool
 }
 
 func cleanS3Path(path string) string {
@@ -69,7 +69,7 @@ func cleanS3Path(path string) string {
 	return path
 }
 
-func (s *s3sync) syncLocalToS3(source, bucket, prefix string, workers int) error {
+func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error {
 	prefix = cleanS3Path(prefix)
 
 	bucketIndex, err := s.bucketIndex(bucket, prefix)
@@ -77,33 +77,46 @@ func (s *s3sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 		return err
 	}
 
-	fileChan := make(chan *syncFile, workers*1000)
+	fileChan := make(chan *localToS3Input, workers*1000)
 	wg := new(sync.WaitGroup)
 	wg.Add(workers)
 	for i := 0; i < workers; i++ {
 		go func() {
+			defer wg.Done()
 			s3Svc := s3.New(s.AWSConfig)
 			for f := range fileChan {
-				log.Println("Putting:", f.LocalPath, f.Key)
+				start := time.Now()
+				log.Println("START:", f.LocalPath, f.Params.Key)
 
-				params := &s3.PutObjectInput{
-					Key:         aws.String(f.Key),
-					Bucket:      aws.String(bucket),
-					ContentType: aws.String(ContentType(f.Key)),
-				}
-				err := s.localToS3(s3Svc, f.LocalPath, params)
+				err := localToS3(s3Svc, f)
 				if err != nil {
 					log.Print(err)
 				}
+
+				log.Printf("DONE (%s): %s %s", time.Since(start), f.LocalPath, f.Params.Key)
 			}
-			wg.Done()
 		}()
 	}
 
-	err = filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
-		if !info.Mode().IsRegular() {
-			return err
+	fileFilter := func(path string, info os.FileInfo) bool {
+		if s.CopySymlinks && info.Mode()&os.ModeSymlink != 0 {
+			return true
 		}
+		if info.Mode().IsRegular() {
+			return true
+		}
+
+		return false
+	}
+
+	err = filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Println(err)
+		}
+		if !fileFilter(path, info) {
+			return nil
+		}
+
 		relPath, err := filepath.Rel(source, path)
 		key := prefix + relPath
 
@@ -112,8 +125,14 @@ func (s *s3sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 			return nil
 		}
 
-		fileChan <- &syncFile{Key: key, LocalPath: path, Info: info}
-		return err
+		params := &s3.PutObjectInput{
+			Key:         aws.String(key),
+			Bucket:      aws.String(bucket),
+			ContentType: aws.String(ContentType(key)),
+		}
+
+		fileChan <- &localToS3Input{LocalPath: path, Params: params}
+		return nil
 	})
 	close(fileChan)
 
@@ -137,7 +156,7 @@ func (s S3KeyMap) Exists(key string, size int64) bool {
 	return *v.Size == size
 }
 
-func (s *s3sync) bucketIndex(bucket, prefix string) (S3KeyMap, error) {
+func (s *S3Sync) bucketIndex(bucket, prefix string) (S3KeyMap, error) {
 	s3Svc := s3.New(s.AWSConfig)
 
 	keymap := make(S3KeyMap)
@@ -186,15 +205,36 @@ func ContentType(path string) string {
 	return "binary/octet-stream"
 }
 
-func (s *s3sync) localToS3(s3Svc *s3.S3, localPath string, params *s3.PutObjectInput) error {
-	file, err := os.Open(localPath)
-	if err != nil {
-		return err
+type localToS3Input struct {
+	LocalPath string
+	Params    *s3.PutObjectInput
+	Info      os.FileInfo
+}
+
+func localToS3(s3Svc *s3.S3, in *localToS3Input) error {
+	metadata := make(map[string]*string)
+	if in.Info.Mode()&os.ModeSymlink != 0 {
+		target, err := os.Readlink(in.LocalPath)
+		if err != nil {
+			return err
+		}
+		metadata["mode"] = aws.String("S_IFLNK")
+		in.Params.Body = bytes.NewReader([]byte(target))
+
+	} else if in.Info.Mode().IsRegular() {
+		file, err := os.Open(in.LocalPath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		in.Params.Body = file
 	}
-	defer file.Close()
 
-	params.Body = file
+	if len(metadata) > 0 {
+		in.Params.Metadata = &metadata
+	}
 
-	_, err = s3Svc.PutObject(params)
+	_, err := s3Svc.PutObject(in.Params)
 	return err
 }
