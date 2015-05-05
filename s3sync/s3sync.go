@@ -86,14 +86,14 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 			s3Svc := s3.New(s.AWSConfig)
 			for f := range fileChan {
 				start := time.Now()
-				log.Println("START:", f.LocalPath, f.Params.Key)
+				log.Println("START:", f.LocalPath, *f.Params.Key)
 
 				err := localToS3(s3Svc, f)
 				if err != nil {
 					log.Print(err)
 				}
 
-				log.Printf("DONE (%s): %s %s", time.Since(start), f.LocalPath, f.Params.Key)
+				log.Printf("DONE (%s): %s %s", time.Since(start), f.LocalPath, *f.Params.Key)
 			}
 		}()
 	}
