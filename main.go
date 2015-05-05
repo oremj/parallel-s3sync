@@ -13,6 +13,8 @@ import (
 
 func main() {
 
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+
 	app := cli.NewApp()
 	app.Name = "parallel-s3sync"
 	app.Usage = "<source> <target>"
