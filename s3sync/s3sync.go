@@ -131,7 +131,7 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 			ContentType: aws.String(ContentType(key)),
 		}
 
-		fileChan <- &localToS3Input{LocalPath: path, Params: params}
+		fileChan <- &localToS3Input{LocalPath: path, Params: params, Info: info}
 		return nil
 	})
 	close(fileChan)
