@@ -112,6 +112,7 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 	err = filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			log.Println(err)
+			return nil
 		}
 		if !fileFilter(path, info) {
 			return nil
