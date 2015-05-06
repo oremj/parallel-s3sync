@@ -28,6 +28,10 @@ func main() {
 			Name:  "copy-symlinks",
 			Usage: "copy, but do not follow symlinks",
 		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "verbose logging",
+		},
 		cli.IntFlag{
 			Name:  "loglevel",
 			Value: 0,
@@ -43,6 +47,7 @@ func main() {
 		source, target := c.Args()[0], c.Args()[1]
 		workers := c.Int("workers")
 		copySymlinks := c.Bool("copy-symlinks")
+		s3sync.Debug = c.Bool("debug")
 
 		s3Url, err := url.Parse(c.Args()[1])
 		if s3Url.Scheme != "s3" || s3Url.Host == "" || s3Url.Path == "" {

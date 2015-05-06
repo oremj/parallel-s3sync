@@ -122,7 +122,7 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 		key := prefix + relPath
 
 		if bucketIndex.Exists(key, info.Size()) {
-			log.Println("Exists:", key)
+			debug("Exists:", key)
 			return nil
 		}
 
