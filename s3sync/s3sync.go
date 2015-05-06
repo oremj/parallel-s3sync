@@ -3,6 +3,7 @@ package s3sync
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"mime"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
@@ -219,7 +221,6 @@ func localToS3(s3Svc *s3.S3, in *localToS3Input) error {
 		if err != nil {
 			return err
 		}
-		metadata["mode"] = aws.String("S_IFLNK")
 		in.Params.Body = bytes.NewReader([]byte(target))
 
 	} else if in.Info.Mode().IsRegular() {
@@ -230,6 +231,12 @@ func localToS3(s3Svc *s3.S3, in *localToS3Input) error {
 		defer file.Close()
 
 		in.Params.Body = file
+	}
+
+	if stat_t, ok := in.Info.Sys().(*syscall.Stat_t); ok {
+		metadata["mode"] = aws.String(fmt.Sprint(stat_t.Mode))
+		metadata["uid"] = aws.String(fmt.Sprint(stat_t.Uid))
+		metadata["gid"] = aws.String(fmt.Sprint(stat_t.Gid))
 	}
 
 	if len(metadata) > 0 {
