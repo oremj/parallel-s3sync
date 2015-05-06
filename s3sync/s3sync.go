@@ -202,6 +202,8 @@ func (s S3KeyMap) ExistsETAG(key string, src io.Reader) bool {
 		return false
 	}
 
+	log.Println(key, *v.ETag, md5Sum(src))
+
 	return *v.ETag == md5Sum(src)
 }
 
