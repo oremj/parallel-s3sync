@@ -43,7 +43,9 @@ func parseS3Path(path string) (*url.URL, error) {
 
 func New(awsConfig *aws.Config) *S3Sync {
 	return &S3Sync{
-		AWSConfig: awsConfig,
+		AWSConfig:          awsConfig,
+		ExcludeDirectories: make(map[string]bool),
+		ExcludePatterns:    make([]string, 0),
 	}
 }
 
@@ -61,9 +63,10 @@ func (s *S3Sync) Sync(source, target string, workers int) error {
 }
 
 type S3Sync struct {
-	AWSConfig       *aws.Config
-	CopySymlinks    bool
-	ExcludePatterns []string
+	AWSConfig          *aws.Config
+	CopySymlinks       bool
+	ExcludePatterns    []string
+	ExcludeDirectories map[string]bool
 }
 
 func cleanS3Path(path string) string {
@@ -133,6 +136,9 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 		if err != nil {
 			log.Println(err)
 			return nil
+		}
+		if info.Mode().IsDir() && s.ExcludeDirectories[path] {
+			return filepath.SkipDir
 		}
 		if filterPath(path, info) {
 			return nil

@@ -42,6 +42,11 @@ func main() {
 			Usage: "Matches based on http://golang.org/pkg/path/filepath/#Match",
 			Value: &cli.StringSlice{},
 		},
+		cli.StringSliceFlag{
+			Name:  "exclude-dir",
+			Usage: "if the directory matches, skip. No trailing /",
+			Value: &cli.StringSlice{},
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
@@ -54,6 +59,7 @@ func main() {
 		copySymlinks := c.Bool("copy-symlinks")
 		s3sync.Debug = c.Bool("debug")
 		excludes := c.StringSlice("exclude")
+		excludeDirs := c.StringSlice("exclude-dir")
 
 		s3Url, err := url.Parse(c.Args()[1])
 		if s3Url.Scheme != "s3" || s3Url.Host == "" || s3Url.Path == "" {
@@ -64,6 +70,9 @@ func main() {
 			MaxRetries: 5,
 			LogLevel:   uint(c.Int("loglevel")),
 		})
+		for _, d := range excludeDirs {
+			sync.ExcludeDirectories[d] = true
+		}
 		sync.ExcludePatterns = excludes
 		sync.CopySymlinks = copySymlinks
 		err = sync.Sync(source, target, workers)
