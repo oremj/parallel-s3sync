@@ -2,8 +2,10 @@ package s3sync
 
 import (
 	"bytes"
+	"crypto/md5"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"mime"
 	"net/url"
@@ -139,9 +141,22 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 		relPath, err := filepath.Rel(source, path)
 		key := prefix + relPath
 
-		if bucketIndex.Exists(key, info.Size()) {
-			debug("Exists:", key)
+		if info.Mode().IsRegular() && bucketIndex.ExistsSize(key, info.Size()) {
+			debug("Exists Size:", key)
 			return nil
+		}
+
+		if info.Mode()&os.ModeSymlink != 0 {
+			target, err := os.Readlink(path)
+			if err != nil {
+				log.Println(err)
+				return nil
+			}
+
+			if bucketIndex.ExistsETAG(key, bytes.NewBufferString(target)) {
+				debug("Exists ETAG:", key)
+				return nil
+			}
 		}
 
 		params := &s3.PutObjectInput{
@@ -164,15 +179,30 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 	return nil
 }
 
+func md5Sum(src io.Reader) string {
+	h := md5.New()
+	io.Copy(h, src)
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
 type S3KeyMap map[string]*s3.Object
 
-func (s S3KeyMap) Exists(key string, size int64) bool {
+func (s S3KeyMap) ExistsSize(key string, size int64) bool {
 	v, ok := s[key]
 	if !ok {
 		return false
 	}
 
 	return *v.Size == size
+}
+
+func (s S3KeyMap) ExistsETAG(key string, src io.Reader) bool {
+	v, ok := s[key]
+	if !ok {
+		return false
+	}
+
+	return *v.ETag == md5Sum(src)
 }
 
 func (s *S3Sync) bucketIndex(bucket, prefix string) (S3KeyMap, error) {
