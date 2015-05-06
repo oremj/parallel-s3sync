@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/codegangsta/cli"
+	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
+	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/oremj/parallel-s3sync/s3sync"
 )
 

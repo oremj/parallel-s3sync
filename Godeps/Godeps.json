@@ -1,0 +1,50 @@
+{
+	"ImportPath": "github.com/oremj/parallel-s3sync",
+	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/aws",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/endpoints",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/query",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/rest",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/restxml",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/xml/xmlutil",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/signer/v4",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/awslabs/aws-sdk-go/service/s3",
+			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-106-ga889873",
+			"Rev": "a889873af50a499d060097216dcdbcc26ed09e7c"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+		}
+	]
+}
