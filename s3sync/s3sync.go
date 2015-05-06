@@ -204,7 +204,7 @@ func (s S3KeyMap) ExistsETAG(key string, src io.Reader) bool {
 
 	log.Println(key, *v.ETag, md5Sum(src))
 
-	return *v.ETag == md5Sum(src)
+	return *v.ETag == `"`+md5Sum(src)+`"`
 }
 
 func (s *S3Sync) bucketIndex(bucket, prefix string) (S3KeyMap, error) {
