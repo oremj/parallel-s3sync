@@ -59,8 +59,9 @@ func (s *S3Sync) Sync(source, target string, workers int) error {
 }
 
 type S3Sync struct {
-	AWSConfig    *aws.Config
-	CopySymlinks bool
+	AWSConfig       *aws.Config
+	CopySymlinks    bool
+	ExcludePatterns []string
 }
 
 func cleanS3Path(path string) string {
@@ -69,6 +70,21 @@ func cleanS3Path(path string) string {
 		path += "/"
 	}
 	return path
+}
+
+func (s *S3Sync) excludeFile(path string) bool {
+	for _, pattern := range s.ExcludePatterns {
+		match, err := filepath.Match(pattern, path)
+		if err != nil {
+			log.Println("excludeFile", err)
+			continue
+		}
+		if match {
+			return true
+		}
+
+	}
+	return false
 }
 
 func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error {
@@ -100,15 +116,15 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 		}()
 	}
 
-	fileFilter := func(path string, info os.FileInfo) bool {
+	filterPath := func(path string, info os.FileInfo) bool {
 		if s.CopySymlinks && info.Mode()&os.ModeSymlink != 0 {
-			return true
+			return s.excludeFile(path)
 		}
 		if info.Mode().IsRegular() {
-			return true
+			return s.excludeFile(path)
 		}
 
-		return false
+		return true
 	}
 
 	err = filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
@@ -116,7 +132,7 @@ func (s *S3Sync) syncLocalToS3(source, bucket, prefix string, workers int) error
 			log.Println(err)
 			return nil
 		}
-		if !fileFilter(path, info) {
+		if filterPath(path, info) {
 			return nil
 		}
 

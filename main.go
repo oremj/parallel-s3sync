@@ -37,6 +37,11 @@ func main() {
 			Value: 0,
 			Usage: "Sets aws-sdk-go log level",
 		},
+		cli.StringSliceFlag{
+			Name:  "exclude",
+			Usage: "Matches based on http://golang.org/pkg/path/filepath/#Match",
+			Value: &cli.StringSlice{},
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
@@ -48,6 +53,7 @@ func main() {
 		workers := c.Int("workers")
 		copySymlinks := c.Bool("copy-symlinks")
 		s3sync.Debug = c.Bool("debug")
+		excludes := c.StringSlice("exclude")
 
 		s3Url, err := url.Parse(c.Args()[1])
 		if s3Url.Scheme != "s3" || s3Url.Host == "" || s3Url.Path == "" {
@@ -58,6 +64,7 @@ func main() {
 			MaxRetries: 5,
 			LogLevel:   uint(c.Int("loglevel")),
 		})
+		sync.ExcludePatterns = excludes
 		sync.CopySymlinks = copySymlinks
 		err = sync.Sync(source, target, workers)
 		if err != nil {
