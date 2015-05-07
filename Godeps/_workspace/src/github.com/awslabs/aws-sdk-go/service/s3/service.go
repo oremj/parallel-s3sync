@@ -1,14 +1,14 @@
 package s3
 
 import (
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/internal/protocol/restxml"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/internal/signer/v4"
+	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/internal/protocol/restxml"
+	"github.com/awslabs/aws-sdk-go/internal/signer/v4"
 )
 
+// S3 is a client for Amazon S3.
 type S3 struct {
-	* // S3 is a client for Amazon S3.
-	aws.Service
+	*aws.Service
 }
 
 // Used for custom service initialization logic

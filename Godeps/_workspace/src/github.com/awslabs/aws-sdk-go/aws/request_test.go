@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws/credentials"
+	"github.com/awslabs/aws-sdk-go/aws/credentials"
 	"github.com/stretchr/testify/assert"
 )
 

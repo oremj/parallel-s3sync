@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 )
 
 func ExampleApp() {

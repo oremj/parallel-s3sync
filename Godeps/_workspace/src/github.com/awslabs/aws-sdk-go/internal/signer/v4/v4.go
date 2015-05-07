@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws/credentials"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,7 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws/credentials"
+
+	"github.com/awslabs/aws-sdk-go/aws"
 )
 
 const (
@@ -302,7 +303,9 @@ func makeSha256Reader(reader io.ReadSeeker) []byte {
 	packet := make([]byte, 4096)
 	hash := sha256.New()
 
-	reader.Seek(0, 0)
+	start, _ := reader.Seek(0, 1)
+	defer reader.Seek(start, 0)
+
 	for {
 		n, err := reader.Read(packet)
 		if n > 0 {
@@ -312,7 +315,6 @@ func makeSha256Reader(reader io.ReadSeeker) []byte {
 			break
 		}
 	}
-	reader.Seek(0, 0)
 
 	return hash.Sum(nil)
 }

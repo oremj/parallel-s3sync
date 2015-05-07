@@ -1,14 +1,15 @@
 package query_test
 
 import (
+	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/internal/protocol/query"
+	"github.com/awslabs/aws-sdk-go/internal/signer/v4"
+
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"github.com/awslabs/aws-sdk-go/internal/protocol/xml/xmlutil"
 	"github.com/awslabs/aws-sdk-go/internal/util"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/internal/protocol/query"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/internal/protocol/xml/xmlutil"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/internal/signer/v4"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -1592,3 +1593,4 @@ func TestInputService9ProtocolTestRecursiveShapesCase6(t *testing.T) {
 	// assert headers
 
 }
+

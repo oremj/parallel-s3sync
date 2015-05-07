@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 )
 
 func Test_ShowAppHelp_NoAuthor(t *testing.T) {

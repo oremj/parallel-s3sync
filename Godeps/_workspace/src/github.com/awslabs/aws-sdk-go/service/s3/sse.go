@@ -4,8 +4,8 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws/awsutil"
+	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws/awsutil"
 )
 
 var errSSERequiresSSL = aws.APIError{

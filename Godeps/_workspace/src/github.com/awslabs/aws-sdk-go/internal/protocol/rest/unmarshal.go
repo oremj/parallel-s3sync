@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws"
 )
 
 func Unmarshal(r *aws.Request) {

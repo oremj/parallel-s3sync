@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/service/s3"
+	"github.com/awslabs/aws-sdk-go/service/s3"
 )
 
 // The default part size to buffer chunks of a payload into.

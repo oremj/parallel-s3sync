@@ -2,7 +2,7 @@ package credentials
 
 import (
 	"fmt"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/vaughan0/go-ini"
+	"github.com/vaughan0/go-ini"
 	"os"
 	"path/filepath"
 )

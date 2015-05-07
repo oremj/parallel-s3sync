@@ -3,9 +3,9 @@ package s3_test
 import (
 	"testing"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws/credentials"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/service/s3"
+	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws/credentials"
+	"github.com/awslabs/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +17,7 @@ type s3BucketTest struct {
 var (
 	baseConfig = &aws.Config{
 		Credentials: credentials.NewStaticCredentials("AKID", "SECRET", ""),
-		Region:      "mock-region",
+		Region: "mock-region",
 	}
 
 	sslTests = []s3BucketTest{

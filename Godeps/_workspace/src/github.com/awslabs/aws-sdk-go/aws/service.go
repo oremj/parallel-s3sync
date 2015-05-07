@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/internal/endpoints"
+	"github.com/awslabs/aws-sdk-go/internal/endpoints"
 )
 
 // A Service implements the base service request and response handling

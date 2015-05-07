@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws"
 )
 
 // contentMD5 computes and sets the HTTP Content-MD5 header for requests that

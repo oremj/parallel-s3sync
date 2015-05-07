@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/service/s3"
+	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,6 +18,7 @@ var s3StatusCodeErrorTests = []struct {
 	code    string
 	message string
 }{
+	{301, "Moved Permanently", "", "MovedPermanently", "Moved Permanently"},
 	{403, "Forbidden", "", "Forbidden", "Forbidden"},
 	{400, "Bad Request", "", "BadRequest", "Bad Request"},
 	{404, "Not Found", "", "NotFound", "Not Found"},

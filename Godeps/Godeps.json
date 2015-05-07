@@ -7,35 +7,35 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/aws",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/endpoints",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/query",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/rest",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/restxml",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/protocol/xml/xmlutil",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/internal/signer/v4",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/awslabs/aws-sdk-go/service/s3",
-			"Rev": "b4224161b7c4337c158b16e41e6874f3d451ceb1"
+			"Rev": "bba8ba311b61785d4a866fe5c110737d9bf8b764"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/cli",

@@ -3,7 +3,7 @@ package aws_test
 import (
 	"testing"
 
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws"
+	"github.com/awslabs/aws-sdk-go/aws"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,7 +1,7 @@
 package aws
 
 import (
-	"github.com/oremj/parallel-s3sync/Godeps/_workspace/src/github.com/awslabs/aws-sdk-go/aws/credentials"
+	"github.com/awslabs/aws-sdk-go/aws/credentials"
 	"io"
 	"net/http"
 	"os"
