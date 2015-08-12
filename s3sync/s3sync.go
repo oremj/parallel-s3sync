@@ -257,7 +257,7 @@ func ContentType(path string) string {
 	if tmp := mime.TypeByExtension(filepath.Ext(path)); tmp != "" {
 		return tmp
 	}
-	return "binary/octet-stream"
+	return "application/octet-stream"
 }
 
 type localToS3Input struct {
