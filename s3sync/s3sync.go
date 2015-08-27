@@ -16,8 +16,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/awslabs/aws-sdk-go/aws"
-	"github.com/awslabs/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 func isLocalPath(path string) bool {
@@ -225,15 +225,13 @@ func (s *S3Sync) bucketIndex(bucket, prefix string) (S3KeyMap, error) {
 	for more_keys {
 		resp, err := s3Svc.ListObjects(params)
 
-		if awserr := aws.Error(err); awserr != nil {
-			log.Println("Error:", awserr.Code, awserr.Message)
+		if err != nil {
+			log.Println("Error:", err)
 			retries--
 			if retries < 0 {
 				return nil, err
 			}
 			continue
-		} else if err != nil {
-			return nil, err
 		}
 
 		retries = 5
@@ -292,7 +290,7 @@ func localToS3(s3Svc *s3.S3, in *localToS3Input) error {
 	}
 
 	if len(metadata) > 0 {
-		in.Params.Metadata = &metadata
+		in.Params.Metadata = metadata
 	}
 
 	_, err := s3Svc.PutObject(in.Params)

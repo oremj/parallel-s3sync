@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/awslabs/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/codegangsta/cli"
 	"github.com/oremj/parallel-s3sync/s3sync"
 )
@@ -68,9 +68,10 @@ func main() {
 		}
 
 		sync := s3sync.New(&aws.Config{
-			MaxRetries: 5,
-			LogLevel:   uint(c.Int("loglevel")),
+			MaxRetries: aws.Int(5),
+			LogLevel:   aws.LogLevel(aws.LogLevelType((c.Int("loglevel")))),
 		})
+
 		for _, d := range excludeDirs {
 			sync.ExcludeDirectories[d] = true
 		}
